@@ -6,30 +6,36 @@ CONFIGS = {
     "hard": (16, 30, 99)
 }
 
+SYMBOLS = {
+    "mine": "*",
+    "flag": "F",
+    "opened": "O",
+    "unopened": "U",
+    "hidden": "#",
+    "blank": " "
+}
+
 class MineGrid:
     def __init__(self, level="medium"):
         row, col, num_mines = CONFIGS[level]
-        self.__grid = [[" " for _ in range(col)] for _ in range(row)]
+        self.__grid = [[SYMBOLS["blank"] for _ in range(col)] for _ in range(row)]
         
         for _ in range(num_mines):
             while True:
                 _row = randint(0, row - 1)
                 _col = randint(0, col - 1)
                 
-                if self.__grid[_row][_col] != "M":
-                    self.__grid[_row][_col] = "M"
+                if self.__grid[_row][_col] != SYMBOLS["mine"]:
+                    self.__grid[_row][_col] = SYMBOLS["mine"]
                     break
 
         self.__count_adj_mines()
 
     def contains_mine(self, row, col):
-        return self.__grid[row][col] == "M"
+        return self.__grid[row][col] == SYMBOLS["mine"]
     
     def grid(self):
-        copy_grid = []
-        for row in self.__grid:
-            copy_grid.append(row[:])
-        return copy_grid
+        return [row[:] for row in self.__grid]
     
     def __count_adj_mines(self):
         row_len = len(self.__grid)
@@ -37,71 +43,66 @@ class MineGrid:
 
         for i in range(row_len):
             for j in range(col_len):
-                if self.__grid[i][j] == "M":
+                if self.__grid[i][j] == SYMBOLS["mine"]:
                     continue
 
                 count = 0
-                if i - 1 >= 0 and j - 1 >= 0 and self.__grid[i - 1][j - 1] == "M":
+                if i - 1 >= 0 and j - 1 >= 0 and self.__grid[i - 1][j - 1] == SYMBOLS["mine"]:
                     count += 1
-                if i - 1 >= 0 and self.__grid[i - 1][j] == "M":
+                if i - 1 >= 0 and self.__grid[i - 1][j] == SYMBOLS["mine"]:
                     count += 1
-                if i - 1 >= 0 and j + 1 < col_len and self.__grid[i - 1][j + 1] == "M":
+                if i - 1 >= 0 and j + 1 < col_len and self.__grid[i - 1][j + 1] == SYMBOLS["mine"]:
                     count += 1
-                if j - 1 >= 0 and self.__grid[i][j - 1] == "M":
+                if j - 1 >= 0 and self.__grid[i][j - 1] == SYMBOLS["mine"]:
                     count += 1
-                if j + 1 < col_len and self.__grid[i][j + 1] == "M":
+                if j + 1 < col_len and self.__grid[i][j + 1] == SYMBOLS["mine"]:
                     count += 1
-                if i + 1 < row_len and j - 1 >= 0 and self.__grid[i + 1][j - 1] == "M":
+                if i + 1 < row_len and j - 1 >= 0 and self.__grid[i + 1][j - 1] == SYMBOLS["mine"]:
                     count += 1
-                if i + 1 < row_len and self.__grid[i + 1][j] == "M":
+                if i + 1 < row_len and self.__grid[i + 1][j] == SYMBOLS["mine"]:
                     count += 1
-                if i + 1 < row_len and j + 1 < col_len and self.__grid[i + 1][j + 1] == "M":
+                if i + 1 < row_len and j + 1 < col_len and self.__grid[i + 1][j + 1] == SYMBOLS["mine"]:
                     count += 1
 
                 self.__grid[i][j] = str(count)
 
     def __repr__(self):
-        row_list = ["".join(row) for row in self.__grid]
-        return ",".join(row_list)
+        return ",".join(["".join(row) for row in self.__grid])
 
 
 class StateGrid:
     def __init__(self, level="medium"):
         row, col, _ = CONFIGS[level]
-        self.__grid = [["U" for _ in range(col)] for _ in range(row)]
+        self.__grid = [[SYMBOLS["unopened"] for _ in range(col)] for _ in range(row)]
 
     def grid(self):
-        copy_grid = []
-        for row in self.__grid:
-            copy_grid.append(row[:])
-        return copy_grid
+        return [row[:] for row in self.__grid]
     
     def is_unopened(self, row, col):
-        return self.__grid[row][col] == "U"
+        return self.__grid[row][col] == SYMBOLS["unopened"]
     
     def is_opened(self, row, col):
-        return self.__grid[row][col] == "O"
+        return self.__grid[row][col] == SYMBOLS["opened"]
     
     def is_flagged(self, row, col):
-        return self.__grid[row][col] == "F"
+        return self.__grid[row][col] == SYMBOLS["flag"]
     
     def flag(self, row, col):
         if not self.is_unopened(row, col):
             return False
         
-        self.__grid[row][col] = "F"
+        self.__grid[row][col] = SYMBOLS["flag"]
         return True
     
     def open(self, row, col):
         if not self.is_unopened(row, col):
             return False
         
-        self.__grid[row][col] = "O"
+        self.__grid[row][col] = SYMBOLS["opened"]
         return True
     
     def __repr__(self):
-        row_list = ["".join(row) for row in self.__grid]
-        return ",".join(row_list)
+        return ",".join(["".join(row) for row in self.__grid])
     
 class Game:
     def __init__(self, level="medium"):
@@ -122,18 +123,36 @@ class Game:
         return self.__mine_grid.contains_mine(row, col)
     
     def update(self, action, row, col):
-        if action == "O":
+        if action == SYMBOLS["opened"]:
             if self.open(row, col):
                 return 0 if self.contains_mine(row, col) else 1
             else:
                 return -1
-        elif action == "F":
+        elif action == SYMBOLS["flag"]:
             return 1 if self.flag(row, col) else -1
         else:
             return -1
 
     def reveal(self):
-        pass
+        return ",".join(
+            ["".join([c if c != "0" else SYMBOLS["blank"] for c in row]) 
+             for row in repr(self.__mine_grid).split(",")])
 
     def __repr__(self):
-        pass
+        mine_grid = self.__mine_grid.grid()
+        state_grid = self.__state_grid.grid()
+        str_list = []
+        for i in range(self.height):
+            row = []
+            for j in range(self.width):
+                state_cell = state_grid[i][j]
+                mine_cell = mine_grid[i][j]
+                if state_cell == SYMBOLS["unopened"]:
+                    row.append(SYMBOLS["hidden"])
+                elif state_cell == SYMBOLS["opened"]:
+                    row.append(mine_cell if mine_cell != "0" else SYMBOLS["blank"])
+                elif state_cell == SYMBOLS["flag"]:
+                    row.append(SYMBOLS["flag"])
+            str_list.append("".join(row))
+        return ",".join(str_list)
+

@@ -1,19 +1,15 @@
-from blessed import Terminal
 import game
-
-def board(term, grid):
-    for row in grid:
-        print(term.gold + " ---" * len(grid[0]))
-        n_row = map(lambda x: term.red + x, row)
-        print("| " + (term.gold + " | ").join(n_row) + term.gold + " |")
-    print(term.gold + " ---" * len(grid[0]))
+import ui
 
 def main():
-    term = Terminal()
-    mine_grid = game.MineGrid("easy")
-    print(term.home + term.clear)
-    board(term, mine_grid.grid())
-    print(repr(mine_grid))
+    _game = game.Game("medium")
+    _game.open(1, 3)
+    _game.open(5, 6)
+    ui.reset()
+    ui.board(_game.reveal())
+    print(repr(_game._Game__mine_grid))
+    print(_game.reveal())
+    print(repr(_game))
     
 
 if __name__ == "__main__":

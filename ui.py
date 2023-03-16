@@ -1,10 +1,34 @@
 from blessed import Terminal
-from game import Game
+from game import SYMBOLS
 
-def board(term: Terminal, game: Game):
-    for row in game.grid:
-        print(term.gold + " ---" * len(game.grid[0]))
-        n_row = map(lambda x: term.red + x, row)
-        print("| " + (term.gold + " | ").join(n_row) + term.gold + " |")
-    print(term.gold + " ---" * len(game.grid[0]))
+TERM = Terminal()
+
+def __colourize(cell):
+    colours = {
+        "1": TERM.cyan,
+        "2": TERM.green,
+        "3": TERM.bright_red,
+        "4": TERM.magenta,
+        "5": TERM.cyan,
+        "6": TERM.green,
+        "7": TERM.bright_red,
+        "8": TERM.magenta,
+        SYMBOLS["mine"]: TERM.black_on_red,
+        SYMBOLS["flag"]: TERM.bright_red,
+        SYMBOLS["hidden"]: TERM.white
+    }
+
+    return colours.get(cell, "") + cell + TERM.normal
+
+def reset():
+    print(TERM.home + TERM.clear)
+
+def board(grid_repr):
+    str_list = grid_repr.split(",")
+    width = len(str_list[0])
+    for row in str_list:
+        print(TERM.yellow + " ---" * width)
+        row = [__colourize(c) for c in row]
+        print("| " + (TERM.yellow + " | ").join(row) + TERM.yellow + " |")
+    print(TERM.yellow + " ---" * width)
 
