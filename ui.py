@@ -1,4 +1,5 @@
 from blessed import Terminal
+import questionary
 from game import SYMBOLS
 
 TERM = Terminal()
@@ -32,3 +33,9 @@ def board(grid_repr):
         print("| " + (TERM.yellow + " | ").join(row) + TERM.yellow + " |")
     print(TERM.yellow + " ---" * width)
 
+def status(game_stats):
+    pass
+
+def prompt():
+    questionary.text("> ").ask()
+    

@@ -15,16 +15,17 @@ SYMBOLS = {
     "blank": " "
 }
 
+
 class MineGrid:
     def __init__(self, level="medium"):
         row, col, num_mines = CONFIGS[level]
         self.__grid = [[SYMBOLS["blank"] for _ in range(col)] for _ in range(row)]
-        
+
         for _ in range(num_mines):
             while True:
                 _row = randint(0, row - 1)
                 _col = randint(0, col - 1)
-                
+
                 if self.__grid[_row][_col] != SYMBOLS["mine"]:
                     self.__grid[_row][_col] = SYMBOLS["mine"]
                     break
@@ -33,10 +34,10 @@ class MineGrid:
 
     def contains_mine(self, row, col):
         return self.__grid[row][col] == SYMBOLS["mine"]
-    
+
     def grid(self):
         return [row[:] for row in self.__grid]
-    
+
     def __count_adj_mines(self):
         row_len = len(self.__grid)
         col_len = len(self.__grid[0])
@@ -77,33 +78,34 @@ class StateGrid:
 
     def grid(self):
         return [row[:] for row in self.__grid]
-    
+
     def is_unopened(self, row, col):
         return self.__grid[row][col] == SYMBOLS["unopened"]
-    
+
     def is_opened(self, row, col):
         return self.__grid[row][col] == SYMBOLS["opened"]
-    
+
     def is_flagged(self, row, col):
         return self.__grid[row][col] == SYMBOLS["flag"]
-    
+
     def flag(self, row, col):
         if not self.is_unopened(row, col):
             return False
-        
+
         self.__grid[row][col] = SYMBOLS["flag"]
         return True
-    
+
     def open(self, row, col):
         if not self.is_unopened(row, col):
             return False
-        
+
         self.__grid[row][col] = SYMBOLS["opened"]
         return True
-    
+
     def __repr__(self):
         return ",".join(["".join(row) for row in self.__grid])
-    
+
+
 class Game:
     def __init__(self, level="medium"):
         row, col, num_mines = CONFIGS[level]
@@ -115,13 +117,13 @@ class Game:
 
     def open(self, row, col):
         return self.__state_grid.open(row, col)
-    
+
     def flag(self, row, col):
         return self.__state_grid.flag(row, col)
-    
+
     def contains_mine(self, row, col):
         return self.__mine_grid.contains_mine(row, col)
-    
+
     def update(self, action, row, col):
         if action == SYMBOLS["opened"]:
             if self.open(row, col):
@@ -135,7 +137,7 @@ class Game:
 
     def reveal(self):
         return ",".join(
-            ["".join([c if c != "0" else SYMBOLS["blank"] for c in row]) 
+            ["".join([c if c != "0" else SYMBOLS["blank"] for c in row])
              for row in repr(self.__mine_grid).split(",")])
 
     def __repr__(self):
@@ -155,4 +157,3 @@ class Game:
                     row.append(SYMBOLS["flag"])
             str_list.append("".join(row))
         return ",".join(str_list)
-
