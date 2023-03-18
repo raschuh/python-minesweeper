@@ -1,6 +1,6 @@
 from blessed import Terminal
 import questionary
-from game import SYMBOLS
+from game import Game
 
 TERM = Terminal()
 
@@ -14,9 +14,9 @@ def __colourize(cell):
         "6": TERM.green,
         "7": TERM.bright_red,
         "8": TERM.magenta,
-        SYMBOLS["mine"]: TERM.black_on_red,
-        SYMBOLS["flag"]: TERM.bright_red,
-        SYMBOLS["hidden"]: TERM.white
+        Game.SYMBOLS["mine"]: TERM.black_on_red,
+        Game.SYMBOLS["flag"]: TERM.bright_red,
+        Game.SYMBOLS["hidden"]: TERM.white
     }
 
     return colours.get(cell, "") + cell + TERM.normal
@@ -37,5 +37,5 @@ def status(game_stats):
     pass
 
 def prompt():
-    questionary.text("> ").ask()
+    return questionary.text("> ").ask()
     
