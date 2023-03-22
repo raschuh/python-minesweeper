@@ -24,8 +24,8 @@ def __colourize(cell):
 def reset():
     print(TERM.home + TERM.clear)
 
-def board(grid_repr):
-    str_list = grid_repr.split(",")
+def board(game):
+    str_list = repr(game).split(",")
     width = len(str_list[0])
     for row in str_list:
         print(TERM.yellow + " ---" * width)
@@ -33,8 +33,15 @@ def board(grid_repr):
         print("| " + (TERM.yellow + " | ").join(row) + TERM.yellow + " |")
     print(TERM.yellow + " ---" * width)
 
-def status(game_stats):
-    pass
+def status(game, time_delta):
+    print()
+    print(f"Flags Left: {game.flags_left()}")
+    print(f"Elasped Time: {int(time_delta.total_seconds())}s")
+
+def display(game, time_delta):
+    reset()
+    board(game)
+    status(game, time_delta)
 
 def prompt():
     return questionary.text("> ").ask()

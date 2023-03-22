@@ -6,6 +6,8 @@ CONFIGS = {
     "hard": (16, 30, 99)
 }
 
+GRID_ADDRESSES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
 class MineGrid:
     SYMBOLS = {
         "mine": "*",
@@ -31,14 +33,11 @@ class MineGrid:
         return self.__grid[row][col] == self.SYMBOLS["empty"]
     
     def is_mine(self, row, col):
-        return self.contains_mine(row, col)
+        return self.__grid[row][col] == self.SYMBOLS["mine"]
     
     def is_number(self, row, col):
         cell = self.__grid[row][col]
         return cell != self.SYMBOLS["mine"] and cell != self.SYMBOLS["empty"]
-
-    def contains_mine(self, row, col):
-        return self.__grid[row][col] == self.SYMBOLS["mine"]
 
     def grid(self):
         return [row[:] for row in self.__grid]
@@ -98,20 +97,21 @@ class StateGrid:
 
     def is_flagged(self, row, col):
         return self.__grid[row][col] == self.SYMBOLS["flagged"]
+    
+    def count_flags(self):
+        return repr(self).count(self.SYMBOLS["flagged"])
 
     def flag(self, row, col):
-        if not self.is_unopened(row, col):
-            return False
-
-        self.__grid[row][col] = self.SYMBOLS["flagged"]
-        return True
+        if self.is_opened(row, col):
+            return
+        if self.is_flagged(row, col):
+            self.__grid[row][col] = self.SYMBOLS["unopened"]
+        else:
+            self.__grid[row][col] = self.SYMBOLS["flagged"]
 
     def open(self, row, col):
-        if not self.is_unopened(row, col):
-            return False
-
-        self.__grid[row][col] = self.SYMBOLS["opened"]
-        return True
+        if self.is_unopened(row, col):
+            self.__grid[row][col] = self.SYMBOLS["opened"]
 
     def __repr__(self):
         return ",".join(["".join(row) for row in self.__grid])
@@ -129,49 +129,82 @@ class Game:
         "open": "O",
         "flag": "F",
         "quit": "Q",
-        "reset": "R"
+        "reset": "R",
+        "resize": "S"
     }
 
     STATES = {
-        "gameover": 0,
-        "continue": 1,
+        "victory": 0,
+        "defeat": 1,
+        "continue": 2,
         "error": -1
     }
 
     def __init__(self, level="medium"):
         row, col, num_mines = CONFIGS[level]
-        self.width = col
-        self.height = row
-        self.mine_count = num_mines
+        self.__width = col
+        self.__height = row
+        self.__mine_count = num_mines
+        self.__row_addresses = GRID_ADDRESSES[:row]
+        self.__col_addresses = GRID_ADDRESSES[:col]
         self.__mine_grid = MineGrid(level)
         self.__state_grid = StateGrid(level)
+        self.__state = self.STATES["continue"]
 
-    def open(self, row, col):
+    def update(self, action, row_char, col_char):
+        if not self.__validate_location(row_char, col_char):
+            self.__state = self.STATES["error"]
+
+        row, col = self.__convert_addresses_to_indexes(row_char, col_char)
+
+        if action == self.ACTIONS["open"]:
+            self.__open(row, col)
+            if self.__contains_mine(row, col):
+                self.__state = self.STATES["defeat"]
+            else:
+                self.__state = self.STATES["continue"]
+        elif action == self.ACTIONS["flag"]:
+            self.__flag(row, col)
+            self.__state = self.STATES["continue"]
+        else:
+            self.__state = self.STATES["error"]
+
+        if self.__is_board_cleared():
+            self.__state = self.STATES["victory"]
+        
+        return self.__state
+    
+    def flags_left(self):
+        """Return the count of remaining flags."""
+        return self.__mine_count - self.__state_grid.count_flags()
+    
+    def __open(self, row, col):
         if self.__mine_grid.is_empty(row, col):
             self.__chain_empty_cells(row, col)
-            return True
-        return self.__state_grid.open(row, col)
+        else:
+            self.__state_grid.open(row, col)
 
-    def flag(self, row, col):
-        return self.__state_grid.flag(row, col)
+    def __flag(self, row, col):
+        if self.flags_left() > 0:
+            self.__state_grid.flag(row, col)
 
-    def contains_mine(self, row, col):
-        return self.__mine_grid.contains_mine(row, col)
+    def __contains_mine(self, row, col):
+        return self.__mine_grid.is_mine(row, col)
+    
+    def __is_board_cleared(self):
+        return self.flags_left() == 0 and repr(self.__state_grid).count(StateGrid.SYMBOLS["unopened"]) == 0
 
-    def update(self, action, row, col):
-        if action == self.ACTIONS["open"]:
-            if self.open(row, col):
-                return self.STATES["gameover"] if self.contains_mine(row, col) else self.STATES["continue"]
-            return self.STATES["error"]
-        if action == self.ACTIONS["flag"]:
-            return self.STATES["continue"] if self.flag(row, col) else self.STATES["error"]
-        return self.STATES["error"]
-
-    def reveal(self):
+    def __reveal(self):
         return ",".join(
             ["".join([c if c != MineGrid.SYMBOLS["empty"] else self.SYMBOLS["blank"] for c in row])
              for row in repr(self.__mine_grid).split(",")])
+
+    def __validate_location(self, row_char, col_char):
+        return row_char in self.__row_addresses and col_char in self.__col_addresses
     
+    def __convert_addresses_to_indexes(self, row_char, col_char):
+        return (self.__row_addresses.index(row_char), self.__col_addresses.index(col_char))
+
     def __chain_empty_cells(self, row, col):
         # https://stackoverflow.com/questions/1635641/algorithm-to-search-empty-cells-in-minesweeper/1635655#1635655
         queue = []
@@ -180,12 +213,12 @@ class Game:
         while len(queue) > 0:
             y, x = queue.pop(0)
             self.__state_grid.open(y, x)
-            
+
             for i in [-1, 0, 1]:
                 for j in [-1, 0, 1]:
-                    if x + i < 0 or x + i >= self.width:
+                    if x + i < 0 or x + i >= self.__width:
                         continue
-                    if y + j < 0 or y + j >= self.height:
+                    if y + j < 0 or y + j >= self.__height:
                         continue
                     if self.__state_grid.is_unopened(y + j, x + i):
                         if self.__mine_grid.is_empty(y + j, x + i):
@@ -194,12 +227,16 @@ class Game:
                             self.__state_grid.open(y + j, x + i)
 
     def __repr__(self):
+        if self.__state == self.STATES["defeat"]:
+            return self.__reveal()
+
         mine_grid = self.__mine_grid.grid()
         state_grid = self.__state_grid.grid()
         str_list = []
-        for i in range(self.height):
+
+        for i in range(self.__height):
             row = []
-            for j in range(self.width):
+            for j in range(self.__width):
                 state_cell = state_grid[i][j]
                 mine_cell = mine_grid[i][j]
                 if state_cell == StateGrid.SYMBOLS["unopened"]:
@@ -209,4 +246,5 @@ class Game:
                 elif state_cell == StateGrid.SYMBOLS["flagged"]:
                     row.append(self.SYMBOLS["flag"])
             str_list.append("".join(row))
+
         return ",".join(str_list)
