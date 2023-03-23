@@ -28,8 +28,8 @@ def board(game):
     str_list = repr(game).split(",")
     height = len(str_list)
     width = len(str_list[0])
-    row_addrs, col_addr = game.get_addresses()
-    print(TERM.cyan + "    " + "   ".join(col_addr))
+    row_addrs, col_addrs = game.get_addresses()
+    print(TERM.cyan + "    " + "   ".join(col_addrs))
     for i in range(height):
         print(TERM.yellow + "   ---" + " ---" * (width - 1))
         row = [__colourize(c) for c in str_list[i]]

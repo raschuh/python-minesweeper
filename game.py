@@ -87,7 +87,7 @@ class StateGrid:
 
     def is_flagged(self, row, col):
         return self.__grid[row][col] == self.SYMBOLS["flagged"]
-    
+
     def count_flags(self):
         return repr(self).count(self.SYMBOLS["flagged"])
 
@@ -142,9 +142,11 @@ class Game:
         self.__state = self.STATES["continue"]
 
     def update(self, action, row_char, col_char):
+        """Perform the game logic according the action command from the player."""
         if not self.__validate_location(row_char, col_char):
             self.__state = self.STATES["error"]
 
+        # Convert the alphanumeric grid coordinates to array indices.
         row, col = self.__convert_addresses_to_indexes(row_char, col_char)
 
         if action == self.ACTIONS["open"]:
@@ -161,16 +163,17 @@ class Game:
 
         if self.__is_board_cleared():
             self.__state = self.STATES["victory"]
-        
+
         return self.__state
-    
+
     def flags_left(self):
         """Return the count of remaining flags."""
         return self.__mine_count - self.__state_grid.count_flags()
-    
+
     def get_addresses(self):
+        """Get the alphanumeric grid addresses by row and column."""
         return (self.__row_addresses[:], self.__col_addresses[:])
-    
+
     def __open(self, row, col):
         if self.__mine_grid.is_empty(row, col):
             self.__chain_empty_cells(row, col)
@@ -194,7 +197,7 @@ class Game:
         return (self.__row_addresses.index(row_char), self.__col_addresses.index(col_char))
 
     def __chain_empty_cells(self, row, col):
-        # https://stackoverflow.com/questions/1635641/algorithm-to-search-empty-cells-in-minesweeper/1635655#1635655
+        """Do a breadth first search to find and open neighbouring empty cells."""
         queue = []
         queue.append((row, col))
 
@@ -215,6 +218,7 @@ class Game:
                             self.__state_grid.open(y + j, x + i)
 
     def __reveal(self):
+        """Reveal the game board by opening all remaining hidden cells."""
         return ",".join(
             ["".join([c if c != MineGrid.SYMBOLS["empty"] else self.SYMBOLS["blank"] for c in row])
              for row in repr(self.__mine_grid).split(",")])
