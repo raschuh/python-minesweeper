@@ -24,11 +24,11 @@ def main():
             status = game.update(command[0], command[1], command[2])
             if status == Game.STATES["victory"]:
                 ui.display(game, get_timedelta())
-                print("😎")
+                print("\n😎 - Victory!")
                 break
             elif status == Game.STATES["defeat"]:
                 ui.display(game, get_timedelta())
-                print("😵")
+                print("\n😵 - Defeat...")
                 break
 
 def resize(size):

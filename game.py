@@ -178,6 +178,9 @@ class Game:
         """Return the count of remaining flags."""
         return self.__mine_count - self.__state_grid.count_flags()
     
+    def get_addresses(self):
+        return (self.__row_addresses[:], self.__col_addresses[:])
+    
     def __open(self, row, col):
         if self.__mine_grid.is_empty(row, col):
             self.__chain_empty_cells(row, col)
@@ -193,11 +196,6 @@ class Game:
     
     def __is_board_cleared(self):
         return self.flags_left() == 0 and repr(self.__state_grid).count(StateGrid.SYMBOLS["unopened"]) == 0
-
-    def __reveal(self):
-        return ",".join(
-            ["".join([c if c != MineGrid.SYMBOLS["empty"] else self.SYMBOLS["blank"] for c in row])
-             for row in repr(self.__mine_grid).split(",")])
 
     def __validate_location(self, row_char, col_char):
         return row_char in self.__row_addresses and col_char in self.__col_addresses
@@ -225,6 +223,11 @@ class Game:
                             queue.append((y + j, x + i))
                         elif self.__mine_grid.is_number(y + j, x + i):
                             self.__state_grid.open(y + j, x + i)
+
+    def __reveal(self):
+        return ",".join(
+            ["".join([c if c != MineGrid.SYMBOLS["empty"] else self.SYMBOLS["blank"] for c in row])
+             for row in repr(self.__mine_grid).split(",")])
 
     def __repr__(self):
         if self.__state == self.STATES["defeat"]:

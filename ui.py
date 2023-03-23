@@ -26,12 +26,15 @@ def reset():
 
 def board(game):
     str_list = repr(game).split(",")
+    height = len(str_list)
     width = len(str_list[0])
-    for row in str_list:
-        print(TERM.yellow + " ---" * width)
-        row = [__colourize(c) for c in row]
-        print("| " + (TERM.yellow + " | ").join(row) + TERM.yellow + " |")
-    print(TERM.yellow + " ---" * width)
+    row_addrs, col_addr = game.get_addresses()
+    print(TERM.cyan + "    " + "   ".join(col_addr))
+    for i in range(height):
+        print(TERM.yellow + "   ---" + " ---" * (width - 1))
+        row = [__colourize(c) for c in str_list[i]]
+        print(TERM.cyan + row_addrs[i] + TERM.yellow + " | " + (TERM.yellow + " | ").join(row) + TERM.yellow + " |")
+    print(TERM.yellow + "   ---" + " ---" * (width - 1))
 
 def status(game, time_delta):
     print()
