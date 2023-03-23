@@ -46,30 +46,20 @@ class MineGrid:
         row_len = len(self.__grid)
         col_len = len(self.__grid[0])
 
+        def is_valid_index(i, j, row_len, col_len):
+            return i >= 0 and i < row_len and j >= 0 and j < col_len
+
+        counts = [[0 for _ in range(col_len)] for _ in range(row_len)]
+
         for i in range(row_len):
             for j in range(col_len):
                 if self.__grid[i][j] == self.SYMBOLS["mine"]:
-                    continue
+                    counts[i][j] = self.SYMBOLS["mine"]
+                else:
+                    count = sum([1 for x in range(i-1, i+2) for y in range(j-1, j+2) if is_valid_index(x, y, row_len, col_len) and self.__grid[x][y] == self.SYMBOLS["mine"]])
+                    counts[i][j] = str(count)
 
-                count = 0
-                if i - 1 >= 0 and j - 1 >= 0 and self.__grid[i - 1][j - 1] == self.SYMBOLS["mine"]:
-                    count += 1
-                if i - 1 >= 0 and self.__grid[i - 1][j] == self.SYMBOLS["mine"]:
-                    count += 1
-                if i - 1 >= 0 and j + 1 < col_len and self.__grid[i - 1][j + 1] == self.SYMBOLS["mine"]:
-                    count += 1
-                if j - 1 >= 0 and self.__grid[i][j - 1] == self.SYMBOLS["mine"]:
-                    count += 1
-                if j + 1 < col_len and self.__grid[i][j + 1] == self.SYMBOLS["mine"]:
-                    count += 1
-                if i + 1 < row_len and j - 1 >= 0 and self.__grid[i + 1][j - 1] == self.SYMBOLS["mine"]:
-                    count += 1
-                if i + 1 < row_len and self.__grid[i + 1][j] == self.SYMBOLS["mine"]:
-                    count += 1
-                if i + 1 < row_len and j + 1 < col_len and self.__grid[i + 1][j + 1] == self.SYMBOLS["mine"]:
-                    count += 1
-
-                self.__grid[i][j] = str(count)
+        self.__grid = counts
 
     def __repr__(self):
         return ",".join(["".join(row) for row in self.__grid])
